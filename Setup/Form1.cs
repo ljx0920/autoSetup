@@ -109,6 +109,12 @@ namespace Setup
 
             System.Console.WriteLine("succ!");
         }
+        /*
+         * @autor:ljx
+         * @description:将路径内容写进mapcontent中
+         * @input:
+         * @return:
+         */
         private void defatulDic() {
             mapcontent[CATInstallPath] = tempCATInstallPath;
             mapcontent[CATDLLPath] = tempCATDLLPath;
@@ -141,6 +147,16 @@ namespace Setup
             mapcontent[PATH] = tempPATH;
 
         }
+        /*
+         * @author: ljx
+         * @description:根据mapcontent写env.txt
+         * @input:
+         *  path:env.txt的存放路径
+         *  name:name
+         * @return:
+         * @tip:
+         *  采用强制写策略，每次都把旧的env删除，重新写
+         */
         private void writeENV(string path, string name) {
             if ("".Equals(path) || "".Equals(name)) {
                 System.Console.WriteLine("writeENV::the name or the path is empty!");
@@ -172,7 +188,13 @@ namespace Setup
                 sW1.Close();
 
         }
-        
+        /*
+         * @author:ljx
+         * @description:根据选中的包写路径内容
+         * @input:
+         *  input:选中的包的路径列表
+         * @return:
+         */
         private void dealWithCAAPackage(List<string> input) {
             if (0 == input.Count) {
                 System.Console.WriteLine("dealWithCAAPackage::the size of input is 0");
@@ -201,6 +223,24 @@ namespace Setup
             }
 
         }
+        private void getPackage(string style,XmlNode node, List<string> testlist) {
+            if (null == node||null == testlist) {
+                System.Console.WriteLine("getPackage::the input is empty!");
+                return;
+            }
+            
+
+        }
+        /*
+         * @author:ljx
+         * @description:针对路径修改策略，修改mapcontent中的内容，包括路径的增加，修改，新增路径等
+         * @input:
+         *  name:路径名称
+         *  value:路径字符串
+         *  mode:操作类型，包括add,modify,new
+         *  loc:描述add的插入位置，0表示插在原有路径前，1表示查找原有路径后
+         * @return:
+         */
         private void dealWithFixDic(string name, string value, string mode, string loc="0") {
             if ("".Equals(name) || "".Equals(value) || "".Equals(mode)) {
                 System.Console.WriteLine("dealWithFixDic::some input is empty!" );
@@ -240,6 +280,13 @@ namespace Setup
                 return;
             }
         }
+        /*
+         * @author:ljx
+         * @description:根据选中的包处理CATInstallPath路径
+         * @input:
+         *  input:包的路径字符串
+         * @reutrn：
+         */
         private void dealWithCATInstallPath(string input) {
             if (null == input)
             {
@@ -257,6 +304,13 @@ namespace Setup
             
             
         }
+        /*
+         * @author:ljx
+         * @description:根据选中的包处理CATDLLPath路径
+         * @input:
+         *  input:包的路径字符串
+         * @reutrn：
+         */
         private void dealWithCATDLLPath(string input)
         {
             if (null == input)
@@ -676,6 +730,13 @@ namespace Setup
             //tempCATUserSettingPath = input + "\\win_b64\\startup\\Settings;";
 
         }
+        /*
+         * @author:ljx
+         * @description:根据选中的包处理PATH路径
+         * @input:
+         *  input:包的路径字符串
+         * @reutrn：
+         */
         private void dealWithPATH(string input)
         {
             if (null == input)
