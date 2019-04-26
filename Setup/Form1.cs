@@ -75,15 +75,34 @@ namespace Setup
         public  string tempCLASSPATH_JDBC = "";
         public  string tempCLASSPATH = "";
         public  string tempPATH = "";
+
+        string envPath = "";
+        string envName = "ENV_";
+        string installPath = "";
+        string runStyle = "";
+
         Dictionary<string, string> mapcontent = new Dictionary<string, string>();
         public Form1()
         {
             InitializeComponent();
+
+            this.comboBox1.Items.Add("生产环境");
+            this.comboBox1.Items.Add("测试环境");
+            this.comboBox1.Items.Add("其他服务器");
+
+            this.comboBox2.Items.Add("全功能");
+            this.comboBox2.Items.Add("结构设计");
+            this.comboBox2.Items.Add("三维设计");
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-
+            envPath = "";
+            installPath = "";
+            runStyle = "";
+            envName = "ENV_";
+            mapcontent.Clear();
+            initTempPath();
             XmlDocument xmlDoc = new XmlDocument();
             //选择要加载解析的xml文档
             //xmlDoc.Load("skillinfo.txt");
@@ -94,20 +113,78 @@ namespace Setup
 
             //得到根结点下面的子节点的集合 <skill>
             XmlNodeList skillNodeList = rootNode.ChildNodes;
-
-
-
             List<string> testlist = new List<string>();
+            string role = comboBox2.Text;
+            //XmlNode selectNode ;
+            string selectServer = comboBox1.Text;
             
-            testlist.Add("D:\\DS17\\CAADev\\MBD\\04FTA");
-            testlist.Add("D:\\DS17\\CAADev\\MBD\\01GL");
-            testlist.Add(CATDefaultInstalPath);
-            dealWithCAAPackage(testlist);
+            foreach (XmlNode node1 in node) {
+                if (null != node1.Attributes) {
+                    if (selectServer.Equals(node1.Attributes["name"].Value)) {
+                        getPackage(role, node1, testlist);
+                        testlist.Add(CATDefaultInstalPath);
+                        dealWithCAAPackage(testlist);
+                        defatulDic();
+                        dealConfig(node1);
+                    }
+                }
+            }
+           
 
-            defatulDic();
-            writeENV("C:\\", "ENVTT");
+            
+            
+            //testlist.Add("D:\\DS17\\CAADev\\MBD\\04FTA");
+            //testlist.Add("D:\\DS17\\CAADev\\MBD\\01GL");
+           
 
+            //XmlNode configNode = node[1].ChildNodes[];
+            
+            writeENV(envPath, envName);
+
+            runCmd();
             System.Console.WriteLine("succ!");
+        }
+        /*
+         * @authonr: ljx
+         * @description:根据envpath,envname,installpaty,runstyle生成命令并通过cmd运行,
+         * @input:运行的命令行字符串
+         * @return:
+         */
+        private void runCmd() {
+            if ("".Equals(installPath) || "".Equals(envPath)) {
+                System.Console.WriteLine("runCmd::the installPath or envPath is empty!");
+                return;
+            }
+            //string str = Console.ReadLine();
+            string commond = installPath + " -run \"3DEXPERIENCE\" -env " + envName + " -direnv " + "\""+envPath+"\"" + " -" + runStyle;
+            System.Console.WriteLine("com:" + commond);
+            System.Diagnostics.Process p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = "cmd.exe";
+            p.StartInfo.UseShellExecute = false;    //是否使用操作系统shell启动
+            p.StartInfo.RedirectStandardInput = true;//接受来自调用程序的输入信息
+            p.StartInfo.RedirectStandardOutput = true;//由调用程序获取输出信息
+            p.StartInfo.RedirectStandardError = true;//重定向标准错误输出
+            p.StartInfo.CreateNoWindow = true;//不显示程序窗口
+            p.Start();//启动程序
+
+            //向cmd窗口发送输入信息
+            p.StandardInput.WriteLine( commond+ "&exit");
+
+            p.StandardInput.AutoFlush = true;
+            //p.StandardInput.WriteLine("exit");
+            //向标准输入写入要执行的命令。这里使用&是批处理命令的符号，表示前面一个命令不管是否执行成功都执行后面(exit)命令，如果不执行exit命令，后面调用ReadToEnd()方法会假死
+            //同类的符号还有&&和||前者表示必须前一个命令执行成功才会执行后面的命令，后者表示必须前一个命令执行失败才会执行后面的命令
+
+
+
+            //获取cmd窗口的输出信息
+            string output = p.StandardOutput.ReadToEnd();
+
+            p.WaitForExit();//等待程序执行完退出进程
+            p.Close();
+
+
+            Console.WriteLine(output);
         }
         /*
          * @autor:ljx
@@ -147,6 +224,65 @@ namespace Setup
             mapcontent[PATH] = tempPATH;
 
         }
+
+        /*
+         * @author:ljx
+         * @description:初始化临时路径
+         * @input:
+         * @return;
+         */
+        private void initTempPath() {
+            tempCATInstallPath = "";
+            tempCATDLLPath = "";
+            tempCATICPath = "";
+            tempCATCommandPath = "";
+            tempCATDictionaryPath = "";
+            tempCATDocView = "";
+            tempCATReffilesPath = "";
+            tempCATFontPath = "";
+            tempCATGalaxyPath = "";
+            tempCATGraphicPath = "";
+            tempCATMsgCatalogPath = "";
+            tempCATFeatureCatalogPath = "";
+            tempCATDefaultCollectionStandard = "";
+            tempCATKnowledgePath = "";
+            tempCATStartupPath = "";
+            tempCATW3ResourcesPath = "";
+            tempCATReconcilePath = "";
+            tempCATReferenceSettingPath = "";
+            tempCATUserSettingPath = "";
+            tempCATCollectionStandard = "";
+            tempCATTemp = "";
+            tempCATErrorLog = "";
+            tempCATReport = "";
+            tempCATDisciplinePath = "";
+            tempUSER_HOME = "";
+            tempJAVA_HOME = "";
+            tempCLASSPATH_JDBC = "";
+            tempCLASSPATH = "";
+            tempPATH = "";
+    }
+        /*
+         * @author:ljx
+         * @description:从xml中获取config节点信息，并调用dealWithFixDic更新mapcontent内容
+         * @input:
+         * @return:
+         */
+        private void dealConfig(XmlNode node) {
+            //得到根结点下面的子节点的集合 <skill>
+            XmlNodeList skillNodeList = node.ChildNodes;
+            foreach (XmlNode item in skillNodeList) {
+                if ("config".Equals(item.Name)) {
+                    XmlNodeList subSkillNodeList = item.ChildNodes;
+                    foreach (XmlNode item1 in subSkillNodeList) {
+                        if (null != item1.Attributes) {
+                            dealWithFixDic(item1.Attributes["name"].Value, item1.Attributes["value"].Value, item1.Attributes["mode"].Value, item1.Attributes["location"].Value);
+                        }
+                    }
+                    
+                }
+            }
+        }
         /*
          * @author: ljx
          * @description:根据mapcontent写env.txt
@@ -163,6 +299,8 @@ namespace Setup
                 return;
             }
             string fullpath = path + "\\" + name+".txt";
+            //测试用的路径
+            fullpath = "C:\\ENV.txt";
             StreamWriter sW1 = new StreamWriter(fullpath);
             //初始化env的文件头
             sW1.WriteLine("!----------------------------------------------------------");
@@ -176,16 +314,19 @@ namespace Setup
             sW1.WriteLine("!----------------------------------------------------------");
             sW1.WriteLine(" ");
             //sW1.WriteLine("HAHAH");
-            dealWithFixDic("SWIEEMBDXmlSettingPath", "D:\\DS17\\CAADev\\MBD\\01GL\\SWIEEMBDXmlSetting.xml", "new", "0");
-            dealWithFixDic("CNEXTOUTPUT", "console", "new", "0");
-            dealWithFixDic("CAAResourcePath", "D:\\DS17\\CAADev\\MEE\\01WEIBO\\config_file", "new", "0");
-            dealWithFixDic("CETCFASConfig", "D:\\DS17\\CAADev\\MBD\\05FDE\\win_b64\\resources\\graphic", "new", "0");
-            dealWithFixDic("DSLS_CONFIG", "D:\\DS17\\Licenses\\DSLicSrv.txt", "new", "0");
 
+            //dealWithFixDic("SWIEEMBDXmlSettingPath", "D:\\DS17\\CAADev\\MBD\\01GL\\SWIEEMBDXmlSetting.xml", "new", "0");
+            //dealWithFixDic("CNEXTOUTPUT", "console", "new", "0");
+            //dealWithFixDic("CAAResourcePath", "D:\\DS17\\CAADev\\MEE\\01WEIBO\\config_file", "new", "0");
+            //("CETCFASConfig", "D:\\DS17\\CAADev\\MBD\\05FDE\\win_b64\\resources\\graphic", "new", "0");
+            //dealWithFixDic("DSLS_CONFIG", "D:\\DS17\\Licenses\\DSLicSrv.txt", "new", "0");
             foreach (var item in mapcontent) {
                 sW1.WriteLine(item.Key + item.Value);
             }
-                sW1.Close();
+
+
+
+            sW1.Close();
 
         }
         /*
@@ -223,12 +364,87 @@ namespace Setup
             }
 
         }
+        /*
+         * @author: ljx
+         * @description:根据用户选择，从xml中获取需要的包
+         */
         private void getPackage(string style,XmlNode node, List<string> testlist) {
-            if (null == node||null == testlist) {
+            if (null == node||"".Equals(style)) {
                 System.Console.WriteLine("getPackage::the input is empty!");
                 return;
             }
-            
+            List<string> temp = new List<string>();
+            //得到根结点下面的子节点的集合 <skill>
+            XmlNodeList skillNodeList = node.ChildNodes;
+            foreach (XmlNode item in skillNodeList) {
+                //从startup节点，获取安装路径和运行设置
+                if ("startup".Equals(item.Name)) {
+                    XmlNodeList subSkillNodeList = item.ChildNodes;
+                    foreach (XmlNode item1 in subSkillNodeList) {
+                        if ("installpath".Equals(item1.Name)) {
+                            if (null != item1.Attributes) {
+                                installPath = item1.Attributes["value"].Value;
+                            }
+                        }
+                        if ("parameter".Equals(item1.Name))
+                        {
+                            if (null != item1.Attributes)
+                            {
+                                runStyle = item1.Attributes["value"].Value;
+                            }
+                        }
+                    }
+                }
+
+                //从envfile节点，获取envfile路径
+                if ("envfile".Equals(item.Name)) {
+                    if (null != item.Attributes) {
+                        envPath += item.Attributes["path"].Value;
+                    }
+                }
+
+                //System.Console.WriteLine("tt:" + item.Attributes["name"].Value);
+                //处理business节点，根据用户选中获取需要加装的包，用于在caapackage节点中获取包路径
+                if ("business".Equals(item.Name)) {
+                    XmlNodeList subSkillNodeList = item.ChildNodes;
+                    foreach (XmlNode item1 in subSkillNodeList) {
+                        if (null != item1.Attributes) {
+                            string t = item1.Attributes["id"].Value;
+                            if (style.Equals(item1.Attributes["name"].Value))
+                            {
+                                //System.Console.WriteLine("aa:" + item1.Attributes["name"].Value);
+                                XmlNodeList subsubSkillNodeList = item1.ChildNodes;
+                                foreach (XmlNode item2 in subsubSkillNodeList) {
+                                    if (null != item2.Attributes)
+                                    {
+                                        temp.Add(item2.Attributes["name"].Value);
+                                    }
+                      
+                                }
+                                envName += item1.Attributes["value"].Value;
+                            }
+                        }   
+                       
+                    }
+                }
+                //处理caapackage节点，根据business节点中获取的包名称，在caapackage节点下获取需要加装包的路径
+                if ("caapackage".Equals(item.Name)) {
+                    XmlNodeList subSkillNodeList = item.ChildNodes;
+                    //foreach (string s in temp) {
+                        foreach (XmlNode item1 in subSkillNodeList)
+                        {
+                            if (null != item1.Attributes)
+                            {
+                                if (temp.Contains(item1.Attributes["name"].Value)) {
+                                testlist.Add(item1.Attributes["path"].Value);
+                                }
+                            }
+                        }
+                    //}
+
+                }
+
+            }
 
         }
         /*
@@ -267,6 +483,7 @@ namespace Setup
             }
             else if ("modify".Equals(mode))
             {
+                name += "=";
                 mapcontent[name] = value;
             }
             else if ("new".Equals(mode))
@@ -756,8 +973,6 @@ namespace Setup
                 tempPATH += input;
                 tempPATH += "\\win_b64\\code\\command;";
             }
-            
-            
         }
     }
 }
